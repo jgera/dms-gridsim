@@ -35,7 +35,7 @@ public class Workload {
 
         // Array of Data Size
         for (int i = 0; i < datas.length; i++) {
-            random = new Random(System.currentTimeMillis());
+            random = new Random(System.nanoTime());
             datas[i] = MIN_DATA_SIZE + random.nextInt(MAX_DATA_SIZE - MIN_DATA_SIZE);
         }
 
@@ -45,7 +45,7 @@ public class Workload {
         for (int i = 0; i < numOfJobs; i++) {
 
             try {
-                random = new Random(System.currentTimeMillis());
+                random = new Random(System.nanoTime());
                 int runTime = MIN_RUNTIME + random.nextInt(MAX_RUNTIME - MIN_RUNTIME);
 
                 if (id >= threshold) {
