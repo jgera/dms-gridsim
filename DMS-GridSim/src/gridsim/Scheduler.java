@@ -2,6 +2,8 @@ package gridsim;
 
 import gridsim.dms.SE;
 import gridsim.dms.policy.Policy;
+import gridsim.dms.policy.delete.LRUPolicy;
+import gridsim.dms.policy.delete.MOUPolicy;
 import gridsim.dms.policy.delete.NoPolicy;
 import gridsim.dms.policy.delete.OldestPolicy;
 import java.util.List;
@@ -50,8 +52,17 @@ public class Scheduler {
                     Policy policy;
 
                     switch (compareCode) {
-                        case 1: policy = new OldestPolicy(se, job); break;
-                        default: policy = new NoPolicy(se, job);
+                        case 1:
+                            policy = new OldestPolicy(se, job);
+                            break;
+                        case 2:
+                            policy = new LRUPolicy(se, job);
+                            break;
+                        case 3:
+                            policy = new MOUPolicy(se, job);
+                            break;
+                        default:
+                            policy = new NoPolicy(se, job);
                     }
 
                     int totalRunTime = policy.getTotalRunTime(time);
@@ -98,7 +109,6 @@ public class Scheduler {
         if (busyNodes.size() > 0) {
             for (Node node : busyNodes) {
                 Job finishedJob = node.finishJob();
-                //TODO: write Output
                 System.out.println("FINISHED JOB: " + finishedJob.getJobId());
                 out.write(finishedJob);
             }
