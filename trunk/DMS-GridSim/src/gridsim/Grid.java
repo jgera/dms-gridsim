@@ -16,7 +16,7 @@ public class Grid {
         try {
             Grid grid = new Grid();
 //            grid.generateWorkload("/test.db3", 1000, 50);
-            grid.process("/test.db3", "/testResult.db3", 1, 5, 51200);
+            grid.process("/test.db3", "/testResult.db3", 1, 20, 51200);
 
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -34,10 +34,8 @@ public class Grid {
         SE se = new SE(seCapacity);
         Output out = new Output(result);
 
-        Policy policy;
-//        policy = new NoPolicy(wl, out, cluster, se);
-        policy = new OldestPolicy(wl, out, cluster, se);
-        policy.run();
+        Scheduler scheduler = new Scheduler(compareCode, wl, out, cluster, se);
+        scheduler.run();
     }
 
     private void generateWorkload(String workload, int numOfJobs, double reuse) throws Exception {

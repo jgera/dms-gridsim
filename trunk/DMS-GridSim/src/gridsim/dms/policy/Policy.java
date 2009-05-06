@@ -6,5 +6,5 @@ package gridsim.dms.policy;
  */
 public abstract class Policy {
 
-    public abstract void run() throws Exception;
+    public abstract int getTotalRunTime(int time) throws Exception;
 }
