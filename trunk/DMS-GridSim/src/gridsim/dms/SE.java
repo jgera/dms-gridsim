@@ -31,6 +31,9 @@ public class SE {
     public void deleteData(int requestedSpace) {
         List<Data> toDelete = new Vector<Data>();
         int missingSpace = requestedSpace - (this.size - this.usedSpace);
+        System.out.println("FREE SPACE: " + (this.size - this.usedSpace));
+        System.out.println("REQUESTED SPACE: " + requestedSpace);
+        System.out.println("MISSING SPACE: " + missingSpace);
         int spaceToDelete = 0;
 
         for (Data data : datas) {
@@ -44,7 +47,10 @@ public class SE {
 
         for (Data data : toDelete) {
             datas.remove(data);
-            System.out.println("-- DELETED: " + data.getSize() + " - " + data.getCreationDate());
+            usedSpace -= data.getSize();
+            System.out.println("-- DELETED: SIZE? " + data.getSize() + " - DATE: "
+                    + data.getCreationDate() + " - USAGE: " + data.getLastUsage()
+                    + " - COUNT: " + data.getCount());
         }
     }
 
