@@ -15,6 +15,8 @@ import java.util.Random;
  */
 public class Workload {
 
+    private final int MIN_TASKS = 1;
+    private final int MAX_TASKS = 10;
     private final int MIN_DATA_SIZE = 10; // in MB
     private final int MAX_DATA_SIZE = 1024; // in MB
     private final int MIN_RUNTIME = 300; // in seconds
@@ -54,7 +56,7 @@ public class Workload {
             return null;
         }
         return new Job(rs.getInt("JobID"), rs.getInt("SubmitTime"),
-                rs.getInt("RunTime"), rs.getInt("DataId"), 
+                rs.getInt("RunTime"), rs.getInt("DataId"),
                 rs.getInt("DataSize"), this.compareCode);
     }
 
@@ -78,10 +80,11 @@ public class Workload {
         int dataId = 1;
         int lastSubmitTime = 0;
 
-        for (int i = 0; i < numOfJobs; i++) {
+        for (int i = 0; i < numOfJobs; ) {
             try {
                 random = new Random(System.nanoTime());
-                int runTime = MIN_RUNTIME + random.nextInt(MAX_RUNTIME - MIN_RUNTIME);
+
+                int tasks = MIN_TASKS + random.nextInt(MAX_TASKS - MIN_TASKS);
 
                 if (id > threshold) {
                     dataId = 1 + random.nextInt(threshold);
@@ -91,14 +94,17 @@ public class Workload {
                     submitTime = random.nextInt(lastSubmitTime);
                 }
 
-                stat.setInt(1, id++);
-                stat.setInt(2, submitTime);
-                stat.setInt(3, runTime);
-                stat.setInt(4, dataId);
-                stat.setInt(5, datas[dataId - 1]);
-                stat.addBatch();
-                dataId++;
+                for (int j = 0; j < tasks; j++, i++) {
+                    int runTime = MIN_RUNTIME + random.nextInt(MAX_RUNTIME - MIN_RUNTIME);
 
+                    stat.setInt(1, id++);
+                    stat.setInt(2, submitTime);
+                    stat.setInt(3, runTime);
+                    stat.setInt(4, dataId);
+                    stat.setInt(5, datas[dataId - 1]);
+                    stat.addBatch();
+                }
+                dataId++;
                 submitTime += submissionDelay;
 
                 if (count == 1024) {
