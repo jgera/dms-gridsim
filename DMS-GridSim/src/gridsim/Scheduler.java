@@ -2,10 +2,12 @@ package gridsim;
 
 import gridsim.dms.SE;
 import gridsim.dms.policy.Policy;
+import gridsim.dms.policy.PolicyType;
 import gridsim.dms.policy.delete.LRUPolicy;
 import gridsim.dms.policy.delete.MOUPolicy;
 import gridsim.dms.policy.delete.NoPolicy;
 import gridsim.dms.policy.delete.OldestPolicy;
+import gridsim.dms.policy.delete.SizePolicy;
 import java.util.List;
 import java.util.Vector;
 
@@ -52,14 +54,17 @@ public class Scheduler {
                     Policy policy;
 
                     switch (compareCode) {
-                        case 1:
+                        case PolicyType.OLDEST_POLICY:
                             policy = new OldestPolicy(se, job);
                             break;
-                        case 2:
+                        case PolicyType.LRU_POLICY:
                             policy = new LRUPolicy(se, job);
                             break;
-                        case 3:
+                        case PolicyType.MOU_POLICY:
                             policy = new MOUPolicy(se, job);
+                            break;
+                        case PolicyType.SIZE_POLICY:
+                            policy = new SizePolicy(se, job);
                             break;
                         default:
                             policy = new NoPolicy(se, job);

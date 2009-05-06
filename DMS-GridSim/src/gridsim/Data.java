@@ -60,9 +60,18 @@ public class Data implements Comparable<Data> {
                 return this.compareByUsage(o);
             case 3:
                 return this.compareByCount(o);
+            case 4:
+                return this.compareBySize(o);
             default:
                 return 0;
         }
+    }
+
+    private int compareBySize(Data o) {
+        if (o.getSize() < this.size) {
+            return 1;
+        }
+        return -1;
     }
 
     private int compareByCount(Data o) {

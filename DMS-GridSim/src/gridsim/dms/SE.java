@@ -48,7 +48,7 @@ public class SE {
         for (Data data : toDelete) {
             datas.remove(data);
             usedSpace -= data.getSize();
-            System.out.println("-- DELETED: SIZE? " + data.getSize() + " - DATE: "
+            System.out.println("-- DELETED: SIZE: " + data.getSize() + " - DATE: "
                     + data.getCreationDate() + " - USAGE: " + data.getLastUsage()
                     + " - COUNT: " + data.getCount());
         }
@@ -66,5 +66,6 @@ public class SE {
     public void store(Data data) {
         datas.add(data);
         usedSpace += data.getSize();
+        System.out.println("SE SIZE: " + datas.size());
     }
 }
