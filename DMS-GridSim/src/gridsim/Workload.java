@@ -4,6 +4,7 @@ import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Random;
@@ -17,24 +18,59 @@ public class Workload {
     private final int MIN_DATA_SIZE = 10; // in MB
     private final int MAX_DATA_SIZE = 1024; // in MB
     private final int MIN_RUNTIME = 300; // in seconds
-    private final int MAX_RUNTIME = 1500; // in seconds
+    private final int MAX_RUNTIME = 3000; // in seconds
+    private File file;
     private Connection conn;
     private PreparedStatement stat;
     private Random random;
+    private ResultSet rs;
+    private int compareCode;
 
-    public Workload(String fileName, int numOfJobs, double reuse) throws Exception {
+    public Workload(String fileName) {
+        this.file = new File(fileName);
+    }
 
-        this.createDatabase(fileName);
+    public void prepareToRead(int compareCode) throws Exception {
+        this.compareCode = compareCode;
+
+        try {
+            Class.forName("org.sqlite.JDBC");
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException("Missing SQLite JDBC library.");
+        }
+
+        conn = DriverManager.getConnection("jdbc:sqlite:" + file.getPath());
+        Statement stat = conn.createStatement(
+                ResultSet.TYPE_FORWARD_ONLY,
+                ResultSet.CONCUR_READ_ONLY,
+                ResultSet.CLOSE_CURSORS_AT_COMMIT);
+        conn.setAutoCommit(true);
+
+        rs = stat.executeQuery("SELECT JobID, SubmitTime, RunTime, DataId, DataSize FROM Jobs ORDER BY SubmitTime;");
+    }
+
+    public Job getJob() throws Exception {
+        if (!rs.next()) {
+            return null;
+        }
+        return new Job(rs.getInt("JobID"), rs.getInt("SubmitTime"),
+                rs.getInt("RunTime"), rs.getInt("DataId"), 
+                rs.getInt("DataSize"), this.compareCode);
+    }
+
+    public void generate(int numOfJobs, double reuse) throws Exception {
+
+        this.createDatabase();
 
         int id = 1, count = 0;
         int submissionDelay = 30; // in seconds
         int submitTime = 0; // in seconds
 
-        double threshold = numOfJobs * (reuse / 100);
-        int[] datas = new int[(int) threshold];
-
+        int threshold = numOfJobs - (int) (numOfJobs * (reuse / 100));
+        int[] datas = new int[threshold];
+        System.out.println("-- LIMIAR: " + threshold);
         // Array of Data Size
-        for (int i = 0; i < datas.length; i++) {
+        for (int i = 0; i < threshold; i++) {
             random = new Random(System.nanoTime());
             datas[i] = MIN_DATA_SIZE + random.nextInt(MAX_DATA_SIZE - MIN_DATA_SIZE);
         }
@@ -43,13 +79,12 @@ public class Workload {
         int lastSubmitTime = 0;
 
         for (int i = 0; i < numOfJobs; i++) {
-
             try {
                 random = new Random(System.nanoTime());
                 int runTime = MIN_RUNTIME + random.nextInt(MAX_RUNTIME - MIN_RUNTIME);
 
-                if (id >= threshold) {
-                    dataId = 1 + random.nextInt(datas.length - 1);
+                if (id > threshold) {
+                    dataId = 1 + random.nextInt(threshold);
                     if (submitTime > lastSubmitTime) {
                         lastSubmitTime = submitTime;
                     }
@@ -59,9 +94,10 @@ public class Workload {
                 stat.setInt(1, id++);
                 stat.setInt(2, submitTime);
                 stat.setInt(3, runTime);
-                stat.setInt(4, dataId++);
+                stat.setInt(4, dataId);
                 stat.setInt(5, datas[dataId - 1]);
                 stat.addBatch();
+                dataId++;
 
                 submitTime += submissionDelay;
 
@@ -78,13 +114,12 @@ public class Workload {
         this.close();
     }
 
-    private void createDatabase(String fileName) throws SQLException {
+    private void createDatabase() throws SQLException {
 
-        File file = new File(fileName);
         if (file.exists()) {
             file.delete();
         }
-        
+
         try {
             Class.forName("org.sqlite.JDBC");
         } catch (ClassNotFoundException e) {
