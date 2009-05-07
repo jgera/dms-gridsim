@@ -1,4 +1,4 @@
-package gridsim.dms.policy.delete;
+package gridsim.dms.policy.cache;
 
 import gridsim.Job;
 import gridsim.dms.SE;

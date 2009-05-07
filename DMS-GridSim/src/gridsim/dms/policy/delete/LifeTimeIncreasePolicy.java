@@ -10,12 +10,12 @@ import gridsim.dms.util.DataTransfer;
  *
  * @author Rafael Silva
  */
-public class LifeTimePolicy extends Policy {
+public class LifeTimeIncreasePolicy extends Policy {
 
     private SE se;
     private Job job;
 
-    public LifeTimePolicy(SE se, Job job) {
+    public LifeTimeIncreasePolicy(SE se, Job job) {
         this.se = se;
         this.job = job;
     }
@@ -26,11 +26,11 @@ public class LifeTimePolicy extends Policy {
         int dataSize = job.getData().getSize();
 
         Data data = se.getData(job.getData().getId(), time);
-
         if (data != null) {
             System.out.println("----------- REUSE");
             data.increaseCount();
             data.setLastUsage(time);
+            data.setLifetime(time + SE.LIFETIME);
             totalRunTime = job.getRunTime() + DataTransfer.intranet(dataSize);
         } else {
             se.cleanExpiredData(time);

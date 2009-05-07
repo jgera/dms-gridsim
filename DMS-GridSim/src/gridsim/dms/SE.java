@@ -13,7 +13,7 @@ public class SE {
     private int size; // in MB
     List<Data> datas;
     private int usedSpace; // in MB
-    public static final int LIFETIME = 1000;
+    public static final int LIFETIME = 5000; // in seconds
 
     public SE(int size) {
         this.size = size;
@@ -29,6 +29,11 @@ public class SE {
         return datas;
     }
 
+    public void store(Data data) {
+        datas.add(data);
+        usedSpace += data.getSize();
+    }
+    
     public void cleanExpiredData(int time) {
         List<Data> toDelete = new Vector<Data>();
         for (Data data : datas) {
@@ -36,21 +41,12 @@ public class SE {
                 toDelete.add(data);
             }
         }
-        for (Data data : toDelete) {
-            datas.remove(data);
-            usedSpace -= data.getSize();
-            System.out.println("-- DELETED ID:" + data.getId() + " - SIZE: " + data.getSize() + " - DATE: "
-                    + data.getCreationDate() + " - USAGE: " + data.getLastUsage()
-                    + " - COUNT: " + data.getCount());
-        }
+        this.deleteData(toDelete);
     }
 
     public void deleteData(int requestedSpace) {
         List<Data> toDelete = new Vector<Data>();
         int missingSpace = requestedSpace - (this.size - this.usedSpace);
-        System.out.println("FREE SPACE: " + (this.size - this.usedSpace));
-        System.out.println("REQUESTED SPACE: " + requestedSpace);
-        System.out.println("MISSING SPACE: " + missingSpace);
         int spaceToDelete = 0;
 
         for (Data data : datas) {
@@ -61,14 +57,7 @@ public class SE {
                 break;
             }
         }
-
-        for (Data data : toDelete) {
-            datas.remove(data);
-            usedSpace -= data.getSize();
-            System.out.println("-- DELETED ID:" + data.getId() + "SIZE: " + data.getSize() + " - DATE: "
-                    + data.getCreationDate() + " - USAGE: " + data.getLastUsage()
-                    + " - COUNT: " + data.getCount());
-        }
+        this.deleteData(toDelete);
     }
 
     public boolean hasData(int dataId) {
@@ -81,20 +70,23 @@ public class SE {
         return false;
     }
 
-    public boolean hasData(int dataId, int time) {
+    public Data getData(int dataId, int time) {
         for (Data data : datas) {
             if (data.getId() == dataId) {
-                data.increaseCount();
                 data.setLifetime(time + LIFETIME);
-                return true;
+                return data;
             }
         }
-        return false;
+        return null;
     }
 
-    public void store(Data data) {
-        datas.add(data);
-        usedSpace += data.getSize();
-        System.out.println("SE SIZE: " + datas.size());
+    private void deleteData(List<Data> toDelete) {
+        for (Data data : toDelete) {
+            datas.remove(data);
+            usedSpace -= data.getSize();
+            System.out.println("-- DELETED ID:" + data.getId() + " - SIZE: "
+                    + data.getSize() + " - DATE: " + data.getCreationDate()
+                    + " - USAGE: " + data.getLastUsage() + " - COUNT: " + data.getCount());
+        }
     }
 }

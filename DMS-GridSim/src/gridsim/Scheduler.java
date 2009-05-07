@@ -3,12 +3,9 @@ package gridsim;
 import gridsim.dms.SE;
 import gridsim.dms.policy.Policy;
 import gridsim.dms.policy.PolicyType;
-import gridsim.dms.policy.delete.LRUPolicy;
 import gridsim.dms.policy.delete.LifeTimePolicy;
-import gridsim.dms.policy.delete.MOUPolicy;
-import gridsim.dms.policy.delete.NoPolicy;
-import gridsim.dms.policy.delete.OldestPolicy;
-import gridsim.dms.policy.delete.SizePolicy;
+import gridsim.dms.policy.NoPolicy;
+import gridsim.dms.policy.delete.LifeTimeIncreasePolicy;
 import java.util.List;
 import java.util.Vector;
 
@@ -55,20 +52,11 @@ public class Scheduler {
                     Policy policy;
 
                     switch (compareCode) {
-                        case PolicyType.OLDEST_POLICY:
-                            policy = new OldestPolicy(se, job);
-                            break;
-                        case PolicyType.LRU_POLICY:
-                            policy = new LRUPolicy(se, job);
-                            break;
-                        case PolicyType.MOU_POLICY:
-                            policy = new MOUPolicy(se, job);
-                            break;
-                        case PolicyType.SIZE_POLICY:
-                            policy = new SizePolicy(se, job);
-                            break;
-                        case PolicyType.LIFETIME_POLICY:
+                        case PolicyType.LIFETIME_DELETE_POLICY:
                             policy = new LifeTimePolicy(se, job);
+                            break;
+                        case PolicyType.LIFETIME_INCREASE_DELETE_POLICY:
+                            policy = new LifeTimeIncreasePolicy(se, job);
                             break;
                         default:
                             policy = new NoPolicy(se, job);
