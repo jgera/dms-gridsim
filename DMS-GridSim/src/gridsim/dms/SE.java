@@ -13,6 +13,7 @@ public class SE {
     private int size; // in MB
     List<Data> datas;
     private int usedSpace; // in MB
+    public static final int LIFETIME = 1000;
 
     public SE(int size) {
         this.size = size;
@@ -26,6 +27,22 @@ public class SE {
 
     public List<Data> getDatas() {
         return datas;
+    }
+
+    public void cleanExpiredData(int time) {
+        List<Data> toDelete = new Vector<Data>();
+        for (Data data : datas) {
+            if (data.getLifetime() < time) {
+                toDelete.add(data);
+            }
+        }
+        for (Data data : toDelete) {
+            datas.remove(data);
+            usedSpace -= data.getSize();
+            System.out.println("-- DELETED ID:" + data.getId() + " - SIZE: " + data.getSize() + " - DATE: "
+                    + data.getCreationDate() + " - USAGE: " + data.getLastUsage()
+                    + " - COUNT: " + data.getCount());
+        }
     }
 
     public void deleteData(int requestedSpace) {
@@ -57,6 +74,18 @@ public class SE {
     public boolean hasData(int dataId) {
         for (Data data : datas) {
             if (data.getId() == dataId) {
+                data.increaseCount();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean hasData(int dataId, int time) {
+        for (Data data : datas) {
+            if (data.getId() == dataId) {
+                data.increaseCount();
+                data.setLifetime(time + LIFETIME);
                 return true;
             }
         }
