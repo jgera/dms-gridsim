@@ -12,6 +12,7 @@ public class Data implements Comparable<Data> {
     private int lastUsage;
     private int count;
     private int compareCode;
+    private int lifetime;
 
     public Data(int id, int size, int compareCode) {
         this.id = id;
@@ -50,6 +51,14 @@ public class Data implements Comparable<Data> {
 
     public void setLastUsage(int lastUsage) {
         this.lastUsage = lastUsage;
+    }
+
+    public int getLifetime() {
+        return lifetime;
+    }
+
+    public void setLifetime(int lifetime) {
+        this.lifetime = lifetime;
     }
 
     public int compareTo(Data o) {

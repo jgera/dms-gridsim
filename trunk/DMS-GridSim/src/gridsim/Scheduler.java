@@ -4,6 +4,7 @@ import gridsim.dms.SE;
 import gridsim.dms.policy.Policy;
 import gridsim.dms.policy.PolicyType;
 import gridsim.dms.policy.delete.LRUPolicy;
+import gridsim.dms.policy.delete.LifeTimePolicy;
 import gridsim.dms.policy.delete.MOUPolicy;
 import gridsim.dms.policy.delete.NoPolicy;
 import gridsim.dms.policy.delete.OldestPolicy;
@@ -49,7 +50,7 @@ public class Scheduler {
             for (Node node : freeNodes) {
                 if (node.getStatus().equals(Node.Status.available)) {
                     busyNodes.add(node);
-                    System.out.println("SCHEDULED: " + job.getJobId());
+                    System.out.println("SCHEDULED: " + job.getJobId() + " - TIME: " + time);
 
                     Policy policy;
 
@@ -65,6 +66,9 @@ public class Scheduler {
                             break;
                         case PolicyType.SIZE_POLICY:
                             policy = new SizePolicy(se, job);
+                            break;
+                        case PolicyType.LIFETIME_POLICY:
+                            policy = new LifeTimePolicy(se, job);
                             break;
                         default:
                             policy = new NoPolicy(se, job);

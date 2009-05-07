@@ -14,13 +14,14 @@ public class Grid {
     public static void main(String[] args) {
         try {
             Grid grid = new Grid();
-            grid.generateWorkload("/test.db3", 500, 50);
-            int SE_SIZE = 1500;
-//            grid.process("/test.db3", "/testResult_0.db3", PolicyType.NO_POLICY, 20, SE_SIZE);
-            grid.process("/test.db3", "/testResult_1.db3", PolicyType.OLDEST_POLICY, 20, SE_SIZE);
+//            grid.generateWorkload("/test.db3", 100, 50);
+            int SE_SIZE = 6054;
+            grid.process("/test.db3", "/testResult_0.db3", PolicyType.NO_POLICY, 20, SE_SIZE);
+//            grid.process("/test.db3", "/testResult_1.db3", PolicyType.OLDEST_POLICY, 20, SE_SIZE);
 //            grid.process("/test.db3", "/testResult_2.db3", PolicyType.LRU_POLICY, 20, SE_SIZE);
-            grid.process("/test.db3", "/testResult_3.db3", PolicyType.MOU_POLICY, 20, SE_SIZE);
+//            grid.process("/test.db3", "/testResult_3.db3", PolicyType.MOU_POLICY, 20, SE_SIZE);
 //            grid.process("/test.db3", "/testResult_4.db3", PolicyType.SIZE_POLICY, 20, SE_SIZE);
+//            grid.process("/test.db3", "/testResult_5.db3", PolicyType.LIFETIME_POLICY, 20, SE_SIZE);
         } catch (Exception ex) {
             ex.printStackTrace();
         }

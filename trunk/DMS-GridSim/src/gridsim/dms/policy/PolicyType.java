@@ -11,5 +11,5 @@ public class PolicyType {
     public static final int LRU_POLICY = 2;
     public static final int MOU_POLICY = 3;
     public static final int SIZE_POLICY = 4;
-
+    public static final int LIFETIME_POLICY = 5;
 }
