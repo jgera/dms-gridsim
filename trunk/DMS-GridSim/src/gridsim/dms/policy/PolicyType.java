@@ -15,6 +15,9 @@ public class PolicyType {
     public static final int SIZE_CACHE_POLICY = 4;
 
     // DELETE
-    public static final int LIFETIME_DELETE_POLICY = 11;
-    public static final int LIFETIME_INCREASE_DELETE_POLICY = 12;
+    public static final int LIFETIME_POLICY = 11;
+    public static final int LIFETIME_INCREASE_POLICY = 12;
+    public static final int LIFETIME_INCREASE_CACHE_POLICY = 13;
+    public static final int LIFETIME_CACHE_POLICY = 14;
+    public static final int LIFETIME_CACHE_COUNT_POLICY = 15;
 }

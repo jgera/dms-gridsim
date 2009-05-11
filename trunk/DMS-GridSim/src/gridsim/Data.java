@@ -1,5 +1,7 @@
 package gridsim;
 
+import gridsim.dms.policy.PolicyType;
+
 /**
  *
  * @author Rafael Silva
@@ -63,6 +65,11 @@ public class Data implements Comparable<Data> {
 
     public int compareTo(Data o) {
         switch (compareCode) {
+            case PolicyType.LIFETIME_INCREASE_CACHE_POLICY:
+                return this.compareByLifeTime(o);
+            case PolicyType.LIFETIME_CACHE_POLICY:
+            case PolicyType.LIFETIME_CACHE_COUNT_POLICY:
+                return this.compareByCount(o);
             case 1:
                 return this.compareByDate(o);
             case 2:
@@ -74,6 +81,13 @@ public class Data implements Comparable<Data> {
             default:
                 return 0;
         }
+    }
+
+    private int compareByLifeTime(Data o) {
+        if (o.getLifetime() < this.lifetime) {
+            return 1;
+        }
+        return -1;
     }
 
     private int compareBySize(Data o) {
