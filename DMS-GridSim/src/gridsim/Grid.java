@@ -14,21 +14,40 @@ public class Grid {
     public static void main(String[] args) {
         try {
             Grid grid = new Grid();
-            grid.generateWorkload("/test.db3", 100, 90);
-            int SE_SIZE = 3000; // 30%
-            
-//            grid.process("/test.db3", "/testResult_0.db3", PolicyType.NO_POLICY, 20, SE_SIZE);
+            if (args.length == 0) {
+//                grid.generateWorkload("workload/input/input-1000000-10.db3", 1000000, 10);
+//                grid.generateWorkload("workload/input/input-1000000-25.db3", 1000000, 25);
+//                grid.generateWorkload("workload/input/input-1000000-50.db3", 1000000, 50);
+//                grid.generateWorkload("workload/input/input-1000000-75.db3", 1000000, 75);
+//                grid.generateWorkload("workload/input/input-1000000-90.db3", 1000000, 90);
+            } else {
+                String input = args[0];
+                String output = args[1];
+                int policy = new Integer(args[2]);
+                int nodes = new Integer(args[3]);
+                int seSize = new Integer(args[4]);
+
+                grid.process(input, output, policy, nodes, seSize);
+            }
+
+//                int SE_SIZE = 2000; // 30%
+//
+//                grid.generateWorkload("/t.db3", 100, 50);
+//                grid.process("/t.db3", "/tR1.db3", PolicyType.LIFETIME_CACHE_POLICY, 20, SE_SIZE);
+//                grid.process("/t.db3", "/tR2.db3", PolicyType.LIFETIME_CACHE_COUNT_POLICY, 20, SE_SIZE);
+//                grid.process("/t.db3", "/tR3.db3", PolicyType.LIFETIME_INCREASE_CACHE_POLICY, 20, SE_SIZE);
 
             // CACHE POLICIES
-//            grid.process("/test.db3", "/testResult_1.db3", PolicyType.OLDEST_CACHE_POLICY, 20, SE_SIZE);
-//            grid.process("/test.db3", "/testResult_2.db3", PolicyType.LRU_CACHE_POLICY, 20, SE_SIZE);
-//            grid.process("/test.db3", "/testResult_3.db3", PolicyType.MOU_CACHE_POLICY, 20, SE_SIZE);
-//            grid.process("/test.db3", "/testResult_4.db3", PolicyType.SIZE_CACHE_POLICY, 20, SE_SIZE);
+//                grid.process("/test.db3", "/testResult_1.db3", PolicyType.OLDEST_CACHE_POLICY, 20, SE_SIZE);
+//                grid.process("/test.db3", "/testResult_2.db3", PolicyType.LRU_CACHE_POLICY, 20, SE_SIZE);
+//                grid.process("/test.db3", "/testResult_3.db3", PolicyType.MOU_CACHE_POLICY, 20, SE_SIZE);
+//                grid.process("/test.db3", "/testResult_4.db3", PolicyType.SIZE_CACHE_POLICY, 20, SE_SIZE);
 
             // DELETE POLICIES
-            grid.process("/test.db3", "/testResult_5.db3", PolicyType.LIFETIME_DELETE_POLICY, 20, SE_SIZE);
-            grid.process("/test.db3", "/testResult_6.db3", PolicyType.LIFETIME_INCREASE_DELETE_POLICY, 20, SE_SIZE);
-            
+//                grid.process("/test.db3", "/testResult_5.db3", PolicyType.LIFETIME_POLICY, 20, SE_SIZE);
+//                grid.process("/test.db3", "/testResult_6.db3", PolicyType.LIFETIME_INCREASE_POLICY, 20, SE_SIZE);
+//                grid.process("/test.db3", "/testResult_7.db3", PolicyType.LIFETIME_CACHE_POLICY, 20, SE_SIZE);
+
         } catch (Exception ex) {
             ex.printStackTrace();
         }
