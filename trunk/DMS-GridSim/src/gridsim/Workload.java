@@ -69,6 +69,8 @@ public class Workload {
         int submitTime = 0; // in seconds
 
         int threshold = numOfJobs - (int) (numOfJobs * (reuse / 100));
+        int reuseLimit = numOfJobs - threshold;
+
         int[] datas = new int[threshold];
         System.out.println("-- LIMIAR: " + threshold);
         // Array of Data Size
@@ -84,8 +86,6 @@ public class Workload {
             try {
                 random = new Random(System.nanoTime());
 
-                int tasks = MIN_TASKS + random.nextInt(MAX_TASKS - MIN_TASKS);
-
                 if (id > threshold) {
                     dataId = 1 + random.nextInt(threshold);
                     if (submitTime > lastSubmitTime) {
@@ -94,14 +94,22 @@ public class Workload {
                     submitTime = random.nextInt(lastSubmitTime);
                 }
 
+                int tasks = MIN_TASKS + random.nextInt(MAX_TASKS - MIN_TASKS);
+
                 for (int j = 0; j < tasks; j++, i++) {
                     int runTime = MIN_RUNTIME + random.nextInt(MAX_RUNTIME - MIN_RUNTIME);
 
                     stat.setInt(1, id++);
                     stat.setInt(2, submitTime);
                     stat.setInt(3, runTime);
-                    stat.setInt(4, dataId);
-                    stat.setInt(5, datas[dataId - 1]);
+                    if (reuseLimit > 0) {
+                        stat.setInt(4, dataId);
+                        stat.setInt(5, datas[dataId - 1]);
+                        reuseLimit--;
+                    } else {
+                        stat.setInt(4, dataId);
+                        stat.setInt(5, datas[dataId++ - 1]);
+                    }
                     stat.addBatch();
                 }
                 dataId++;

@@ -15,11 +15,11 @@ public class Grid {
         try {
             Grid grid = new Grid();
             if (args.length == 0) {
-//                grid.generateWorkload("workload/input/input-1000000-10.db3", 1000000, 10);
-//                grid.generateWorkload("workload/input/input-1000000-25.db3", 1000000, 25);
-//                grid.generateWorkload("workload/input/input-1000000-50.db3", 1000000, 50);
-//                grid.generateWorkload("workload/input/input-1000000-75.db3", 1000000, 75);
-//                grid.generateWorkload("workload/input/input-1000000-90.db3", 1000000, 90);
+                grid.generateWorkload("workload/input/2input-1000000-10.db3", 1000000, 10);
+                grid.generateWorkload("workload/input/2input-1000000-25.db3", 1000000, 25);
+                grid.generateWorkload("workload/input/2input-1000000-50.db3", 1000000, 50);
+                grid.generateWorkload("workload/input/2input-1000000-75.db3", 1000000, 75);
+                grid.generateWorkload("workload/input/2input-1000000-90.db3", 1000000, 90);
             } else {
                 String input = args[0];
                 String output = args[1];
