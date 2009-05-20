@@ -64,65 +64,72 @@ public class Workload {
 
         this.createDatabase();
 
-        int id = 1, count = 0;
-        int submissionDelay = 30; // in seconds
+        int submissionDelay = 60; // in seconds
         int submitTime = 0; // in seconds
 
         int threshold = numOfJobs - (int) (numOfJobs * (reuse / 100));
         int reuseLimit = numOfJobs - threshold;
+        System.out.println("-- LIMIAR: " + threshold);
+        System.out.println("-- REUSE LIMIT: " + reuseLimit);
 
         int[] datas = new int[threshold];
-        System.out.println("-- LIMIAR: " + threshold);
         // Array of Data Size
         for (int i = 0; i < threshold; i++) {
             random = new Random(System.nanoTime());
             datas[i] = MIN_DATA_SIZE + random.nextInt(MAX_DATA_SIZE - MIN_DATA_SIZE);
         }
 
+        int id = 1;
+        int count = 0;
         int dataId = 1;
-        int lastSubmitTime = 0;
 
-        for (int i = 0; i < numOfJobs; ) {
+        for (int i = 0; i < threshold; i++) {
             try {
                 random = new Random(System.nanoTime());
+                int runTime = MIN_RUNTIME + random.nextInt(MAX_RUNTIME - MIN_RUNTIME);
 
-                if (id > threshold) {
-                    dataId = 1 + random.nextInt(threshold);
-                    if (submitTime > lastSubmitTime) {
-                        lastSubmitTime = submitTime;
-                    }
-                    submitTime = random.nextInt(lastSubmitTime);
-                }
+                stat.setInt(1, id++);
+                stat.setInt(2, submitTime);
+                stat.setInt(3, runTime);
+                stat.setInt(4, dataId);
+                stat.setInt(5, datas[dataId - 1]);
+                stat.addBatch();
 
-                int tasks = MIN_TASKS + random.nextInt(MAX_TASKS - MIN_TASKS);
-
-                for (int j = 0; j < tasks; j++, i++) {
-                    int runTime = MIN_RUNTIME + random.nextInt(MAX_RUNTIME - MIN_RUNTIME);
-
-                    stat.setInt(1, id++);
-                    stat.setInt(2, submitTime);
-                    stat.setInt(3, runTime);
-                    if (reuseLimit > 0) {
-                        stat.setInt(4, dataId);
-                        stat.setInt(5, datas[dataId - 1]);
-                        reuseLimit--;
-                    } else {
-                        stat.setInt(4, dataId);
-                        stat.setInt(5, datas[dataId++ - 1]);
-                    }
-                    stat.addBatch();
-                }
-                dataId++;
-                submitTime += submissionDelay;
-
-                if (count == 1024) {
+                if (count++ == 1024) {
                     stat.executeBatch();
                     conn.commit();
                     count = 0;
                 }
 
+                submitTime += submissionDelay;
+                dataId++;
+                
             } catch (SQLException sqlException) {
                 sqlException.printStackTrace();
+            }
+        }
+
+        for (int i = 0; i < reuseLimit;) {
+            random = new Random(System.nanoTime());
+            dataId = 1 + random.nextInt(threshold);
+
+            int randomSubmitTime = random.nextInt(submitTime);
+            int runTime = MIN_RUNTIME + random.nextInt(MAX_RUNTIME - MIN_RUNTIME);
+            int tasks = MIN_TASKS + random.nextInt(MAX_TASKS - MIN_TASKS);
+
+            for (int j = 0; j < tasks && i < reuseLimit; j++, i++) {
+                stat.setInt(1, id++);
+                stat.setInt(2, randomSubmitTime);
+                stat.setInt(3, runTime);
+                stat.setInt(4, dataId);
+                stat.setInt(5, datas[dataId - 1]);
+                stat.addBatch();
+
+                if (count++ == 1024) {
+                    stat.executeBatch();
+                    conn.commit();
+                    count = 0;
+                }
             }
         }
         this.close();
