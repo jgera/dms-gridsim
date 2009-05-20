@@ -20,4 +20,8 @@ public class PolicyType {
     public static final int LIFETIME_INCREASE_CACHE_POLICY = 13;
     public static final int LIFETIME_CACHE_POLICY = 14;
     public static final int LIFETIME_CACHE_COUNT_POLICY = 15;
+
+    // QUOTA
+    public static final int STATIC_QUOTA_POLICY = 21;
+    public static final int ELASTIC_QUOTA_POLICY = 22;
 }

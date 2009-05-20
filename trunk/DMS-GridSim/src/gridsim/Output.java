@@ -38,12 +38,12 @@ public class Output {
         } catch (Exception e) {
         }
         try {
-            stat.execute("CREATE TABLE Jobs (JobID INTEGER, SubmitTime INTEGER, WaitTime INTEGER, RunTime INTEGER, TotalRunTime INTEGER, DataID INTEGER, DataSize INTEGER);");
+            stat.execute("CREATE TABLE Jobs (JobID INTEGER, SubmitTime INTEGER, WaitTime INTEGER, RunTime INTEGER, TotalRunTime INTEGER, DataID INTEGER, DataSize INTEGER, OwnerId INTEGER);");
             conn.commit();
         } catch (Exception e) {
         }
 
-        this.stat = conn.prepareStatement("INSERT INTO Jobs VALUES(?, ?, ?, ?, ?, ?, ?)");
+        this.stat = conn.prepareStatement("INSERT INTO Jobs VALUES(?, ?, ?, ?, ?, ?, ?, ?)");
     }
 
     public void write(Job job) throws Exception {
@@ -55,6 +55,7 @@ public class Output {
             stat.setInt(5, job.getTotalRunTime());
             stat.setInt(6, job.getData().getId());
             stat.setInt(7, job.getData().getSize());
+            stat.setInt(8, job.getData().getUserId());
             stat.addBatch();
 
             stat.executeBatch();

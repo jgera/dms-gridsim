@@ -48,7 +48,7 @@ public class Workload {
                 ResultSet.CLOSE_CURSORS_AT_COMMIT);
         conn.setAutoCommit(true);
 
-        rs = stat.executeQuery("SELECT JobID, SubmitTime, RunTime, DataId, DataSize FROM Jobs ORDER BY SubmitTime;");
+        rs = stat.executeQuery("SELECT JobID, SubmitTime, RunTime, DataId, DataSize, OwnerId FROM Jobs ORDER BY SubmitTime;");
     }
 
     public Job getJob() throws Exception {
@@ -57,7 +57,7 @@ public class Workload {
         }
         return new Job(rs.getInt("JobID"), rs.getInt("SubmitTime"),
                 rs.getInt("RunTime"), rs.getInt("DataId"),
-                rs.getInt("DataSize"), this.compareCode);
+                rs.getInt("DataSize"), this.compareCode, rs.getInt("OwnerId"));
     }
 
     public void generate(int numOfJobs, double reuse) throws Exception {
@@ -162,24 +162,6 @@ public class Workload {
         }
 
         this.stat = conn.prepareStatement("INSERT INTO Jobs VALUES(?, ?, ?, ?, ?)");
-    }
-
-    public void updateDatabase() throws SQLException {
-        try {
-            Class.forName("org.sqlite.JDBC");
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Missing SQLite JDBC library.");
-        }
-
-        conn = DriverManager.getConnection("jdbc:sqlite:" + file.getPath());
-        Statement stat = conn.createStatement();
-        conn.setAutoCommit(false);
-
-        try {
-            stat.execute("ALTER TABLE Jobs ADD Owner INTEGER;");
-            conn.commit();
-        } catch (Exception e) {
-        }
     }
 
     private void close() throws SQLException {

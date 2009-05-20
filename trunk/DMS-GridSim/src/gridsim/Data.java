@@ -15,12 +15,14 @@ public class Data implements Comparable<Data> {
     private int count;
     private int compareCode;
     private int lifetime;
+    private int userId;
 
-    public Data(int id, int size, int compareCode) {
+    public Data(int id, int size, int compareCode, int userId) {
         this.id = id;
         this.size = size;
         this.compareCode = compareCode;
         this.count = 0;
+        this.userId = userId;
     }
 
     public int getId() {
@@ -37,6 +39,10 @@ public class Data implements Comparable<Data> {
 
     public int getCount() {
         return count;
+    }
+
+    public int getUserId() {
+        return userId;
     }
 
     public void increaseCount() {
