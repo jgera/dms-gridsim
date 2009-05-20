@@ -1,7 +1,10 @@
 package gridsim;
 
+import gridsim.scheduler.Scheduler;
 import gridsim.dms.SE;
 import gridsim.dms.policy.PolicyType;
+import gridsim.scheduler.DataExclusionScheduler;
+import gridsim.scheduler.QuotaScheduler;
 
 /**
  *
@@ -16,10 +19,10 @@ public class Grid {
             Grid grid = new Grid();
             if (args.length == 0) {
 //                grid.generateWorkload("workload/input/2input-100000-10.db3", 100000, 10);
-                grid.generateWorkload("workload/input/2input-100000-25.db3", 100000, 25);
-                grid.generateWorkload("workload/input/2input-100000-50.db3", 100000, 50);
-                grid.generateWorkload("workload/input/2input-100000-75.db3", 100000, 75);
-                grid.generateWorkload("workload/input/2input-100000-90.db3", 100000, 90);
+//                grid.generateWorkload("workload/input/2input-100000-25.db3", 100000, 25);
+//                grid.generateWorkload("workload/input/2input-100000-50.db3", 100000, 50);
+//                grid.generateWorkload("workload/input/2input-100000-75.db3", 100000, 75);
+//                grid.generateWorkload("workload/input/2input-100000-90.db3", 100000, 90);
             } else {
                 String input = args[0];
                 String output = args[1];
@@ -27,32 +30,22 @@ public class Grid {
                 int nodes = new Integer(args[3]);
                 int seSize = new Integer(args[4]);
 
-                grid.process(input, output, policy, nodes, seSize);
+                if (args.length == 5) {
+                    grid.process(input, output, policy, nodes, seSize);
+                } else if (args.length == 6) {
+                    int seListSize = new Integer(args[5]);
+                    grid.process(input, output, policy, nodes, seSize, seListSize);
+                }
             }
 
-//                int SE_SIZE = 2000; // 30%
-//
-//                grid.generateWorkload("/t.db3", 100, 50);
-//                grid.process("/t.db3", "/tR1.db3", PolicyType.LIFETIME_CACHE_POLICY, 20, SE_SIZE);
-//                grid.process("/t.db3", "/tR2.db3", PolicyType.LIFETIME_CACHE_COUNT_POLICY, 20, SE_SIZE);
-//                grid.process("/t.db3", "/tR3.db3", PolicyType.LIFETIME_INCREASE_CACHE_POLICY, 20, SE_SIZE);
-
-            // CACHE POLICIES
-//                grid.process("/test.db3", "/testResult_1.db3", PolicyType.OLDEST_CACHE_POLICY, 20, SE_SIZE);
-//                grid.process("/test.db3", "/testResult_2.db3", PolicyType.LRU_CACHE_POLICY, 20, SE_SIZE);
-//                grid.process("/test.db3", "/testResult_3.db3", PolicyType.MOU_CACHE_POLICY, 20, SE_SIZE);
-//                grid.process("/test.db3", "/testResult_4.db3", PolicyType.SIZE_CACHE_POLICY, 20, SE_SIZE);
-
-            // DELETE POLICIES
-//                grid.process("/test.db3", "/testResult_5.db3", PolicyType.LIFETIME_POLICY, 20, SE_SIZE);
-//                grid.process("/test.db3", "/testResult_6.db3", PolicyType.LIFETIME_INCREASE_POLICY, 20, SE_SIZE);
-//                grid.process("/test.db3", "/testResult_7.db3", PolicyType.LIFETIME_CACHE_POLICY, 20, SE_SIZE);
+//            grid.test(grid);
 
         } catch (Exception ex) {
             ex.printStackTrace();
         }
     }
 
+    // Data Exclusion Policy
     private void process(String workload, String result, int compareCode,
             int numNodes, int seCapacity) throws Exception {
 
@@ -64,12 +57,41 @@ public class Grid {
         SE se = new SE(seCapacity);
         Output out = new Output(result);
 
-        Scheduler scheduler = new Scheduler(compareCode, wl, out, cluster, se);
+        Scheduler scheduler = new DataExclusionScheduler(compareCode, wl, out, cluster, se);
+        scheduler.run();
+    }
+
+    // Quota Policy
+    private void process(String workload, String result, int compareCode,
+            int numNodes, int seCapacity, int seListSize) throws Exception {
+
+        // Configuring
+        wl = new Workload(workload);
+        wl.prepareToRead(compareCode);
+
+        Cluster cluster = new Cluster(1, numNodes);
+        Output out = new Output(result);
+
+        Scheduler scheduler = new QuotaScheduler(compareCode, wl, out, cluster, seListSize, seCapacity);
         scheduler.run();
     }
 
     private void generateWorkload(String workload, int numOfJobs, double reuse) throws Exception {
         wl = new Workload(workload);
         wl.generate(numOfJobs, reuse);
+    }
+
+    private void test(Grid grid) throws Exception {
+        int SE_SIZE = 2000; // 30%
+
+        grid.generateWorkload("/t.db3", 100, 50);
+        grid.process("/t.db3", "/tR1.db3", PolicyType.LIFETIME_CACHE_POLICY, 20, SE_SIZE);
+        grid.process("/t.db3", "/tR2.db3", PolicyType.LIFETIME_CACHE_COUNT_POLICY, 20, SE_SIZE);
+        grid.process("/t.db3", "/tR3.db3", PolicyType.LIFETIME_INCREASE_CACHE_POLICY, 20, SE_SIZE);
+
+        //DELETE POLICIES
+        grid.process("/test.db3", "/testResult_5.db3", PolicyType.LIFETIME_POLICY, 20, SE_SIZE);
+        grid.process("/test.db3", "/testResult_6.db3", PolicyType.LIFETIME_INCREASE_POLICY, 20, SE_SIZE);
+        grid.process("/test.db3", "/testResult_7.db3", PolicyType.LIFETIME_CACHE_POLICY, 20, SE_SIZE);
     }
 }

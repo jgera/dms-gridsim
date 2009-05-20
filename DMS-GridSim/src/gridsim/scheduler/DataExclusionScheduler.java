@@ -1,5 +1,10 @@
-package gridsim;
+package gridsim.scheduler;
 
+import gridsim.Cluster;
+import gridsim.Job;
+import gridsim.Node;
+import gridsim.Output;
+import gridsim.Workload;
 import gridsim.dms.SE;
 import gridsim.dms.policy.Policy;
 import gridsim.dms.policy.PolicyType;
@@ -15,29 +20,30 @@ import java.util.Vector;
  *
  * @author Rafael Silva
  */
-public class Scheduler {
+public class DataExclusionScheduler implements Scheduler {
 
     private int time = 0;
     private int compareCode;
-    private Workload wl;
+    private Workload workload;
     private Output out;
     private Cluster cluster;
     private SE se;
 
-    public Scheduler(int compareCode, Workload wl, Output out, Cluster cluster, SE se) {
+    public DataExclusionScheduler(int compareCode, Workload workload,
+            Output out, Cluster cluster, SE se) {
         this.compareCode = compareCode;
-        this.wl = wl;
+        this.workload = workload;
         this.out = out;
         this.cluster = cluster;
         this.se = se;
     }
 
+    @Override
     public void run() throws Exception {
-        List<Node> freeNodes, busyNodes;
+        List<Node> freeNodes = cluster.getNodes();
+        List<Node> busyNodes = new Vector<Node>(cluster.getSize());
 
-        Job job = wl.getJob();
-        freeNodes = cluster.getNodes();
-        busyNodes = new Vector<Node>(cluster.getSize());
+        Job job = workload.getJob();
         boolean scheduled = false;
 
         while (job != null) {
@@ -49,10 +55,9 @@ public class Scheduler {
             for (Node node : freeNodes) {
                 if (node.getStatus().equals(Node.Status.available)) {
                     busyNodes.add(node);
-                    System.out.println("SCHEDULED: " + job.getJobId() + " - TIME: " + time);
+//                    System.out.println("SCHEDULED: " + job.getJobId() + " - TIME: " + time);
 
                     Policy policy;
-
                     switch (compareCode) {
                         case PolicyType.LIFETIME_POLICY:
                             policy = new LifeTimePolicy(se, job);
@@ -70,7 +75,6 @@ public class Scheduler {
                         default:
                             policy = new NoPolicy(se, job);
                     }
-
                     int totalRunTime = policy.getTotalRunTime(time);
                     job.setTotalRunTime(totalRunTime);
                     job.setWaitedTime(time - job.getSubmitTime());
@@ -88,8 +92,7 @@ public class Scheduler {
                     for (Node node : busyNodes) {
                         if (node.getJob().getFinishTime() < time) {
                             Job finishedJob = node.finishJob();
-                            //TODO: write Output
-                            System.out.println("FINISHED JOB: " + finishedJob.getJobId());
+//                            System.out.println("FINISHED JOB: " + finishedJob.getJobId());
                             out.write(finishedJob);
                             cleanNodes.add(node);
                         }
@@ -105,17 +108,15 @@ public class Scheduler {
                     }
                 }
             }
-
             if (scheduled) {
-                job = wl.getJob();
+                job = workload.getJob();
                 scheduled = false;
             }
         }
-
         if (busyNodes.size() > 0) {
             for (Node node : busyNodes) {
                 Job finishedJob = node.finishJob();
-                System.out.println("FINISHED JOB: " + finishedJob.getJobId());
+//                System.out.println("FINISHED JOB: " + finishedJob.getJobId());
                 out.write(finishedJob);
             }
         }

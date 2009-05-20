@@ -14,11 +14,11 @@ public class Job {
     private int waitedTime;
     private Data data;
 
-    public Job(int jobId, int submitTime, int runTime, int dataId, int dataSize, int compareCode) {
+    public Job(int jobId, int submitTime, int runTime, int dataId, int dataSize, int compareCode, int ownerId) {
         this.jobId = jobId;
         this.submitTime = submitTime;
         this.runTime = runTime;
-        this.data = new Data(dataId, dataSize, compareCode);
+        this.data = new Data(dataId, dataSize, compareCode, ownerId);
     }
 
     public Data getData() {

@@ -1,6 +1,7 @@
 package gridsim.dms;
 
 import gridsim.Data;
+import gridsim.scheduler.QuotaScheduler;
 import java.util.Collections;
 import java.util.List;
 import java.util.Vector;
@@ -11,14 +12,27 @@ import java.util.Vector;
  */
 public class SE {
 
+    public static final int LIFETIME = 1000; // in seconds
     private int size; // in MB
     private List<Data> datas;
     private List<Data> cache;
     private int cacheSize;
     private int usedSpace; // in MB
-    public static final int LIFETIME = 1000; // in seconds
-
+    private int[] usersQuota;
+    
     public SE(int size) {
+        this.init(size);
+    }
+
+    public SE(int size, int quota) {
+        this.usersQuota = new int[QuotaScheduler.NUMBER_OF_USERS];
+        for (int i = 0; i < QuotaScheduler.NUMBER_OF_USERS; i++) {
+            this.usersQuota[i] = quota;
+        }
+        this.init(size);
+    }
+    
+    private void init(int size) {
         this.size = size;
         this.usedSpace = 0;
         this.datas = new Vector<Data>();
@@ -63,10 +77,10 @@ public class SE {
                 toDelete.add(data);
             }
         }
-        this.deleteData(toDelete);
+        this.deleteData(toDelete, false);
     }
 
-    public void cacheData(int time) {
+    public void cacheData(int time, boolean updateQuota) {
         List<Data> toCache = new Vector<Data>();
         for (Data data : datas) {
             if (data.getLifetime() < time) {
@@ -75,7 +89,7 @@ public class SE {
             }
         }
         cache.addAll(toCache);
-        this.deleteData(toCache);
+        this.deleteData(toCache, updateQuota);
     }
 
     public void uncacheData(Data data) {
@@ -97,7 +111,7 @@ public class SE {
                 break;
             }
         }
-        this.deleteData(toDelete);
+        this.deleteData(toDelete, false);
     }
 
     public boolean hasData(int dataId) {
@@ -128,11 +142,22 @@ public class SE {
         return null;
     }
 
-    private void deleteData(List<Data> toDelete) {
+    private void deleteData(List<Data> toDelete, boolean updateQuota) {
         for (Data data : toDelete) {
             datas.remove(data);
             usedSpace -= data.getSize();
+            if (updateQuota) {
+                usersQuota[data.getUserId()] += data.getSize();
+            }
             System.out.println("-- DELETED ID:" + data.getId() + " - SIZE: " + data.getSize() + " - DATE: " + data.getCreationDate() + " - USAGE: " + data.getLastUsage() + " - COUNT: " + data.getCount());
         }
+    }
+
+    public int getQuota(int userId) {
+        return usersQuota[userId];
+    }
+
+    public void decreaseQuota(int userId, int dataSize) {
+        usersQuota[userId] -= dataSize;
     }
 }
