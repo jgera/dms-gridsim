@@ -164,6 +164,24 @@ public class Workload {
         this.stat = conn.prepareStatement("INSERT INTO Jobs VALUES(?, ?, ?, ?, ?)");
     }
 
+    public void updateDatabase() throws SQLException {
+        try {
+            Class.forName("org.sqlite.JDBC");
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException("Missing SQLite JDBC library.");
+        }
+
+        conn = DriverManager.getConnection("jdbc:sqlite:" + file.getPath());
+        Statement stat = conn.createStatement();
+        conn.setAutoCommit(false);
+
+        try {
+            stat.execute("ALTER TABLE Jobs ADD Owner INTEGER;");
+            conn.commit();
+        } catch (Exception e) {
+        }
+    }
+
     private void close() throws SQLException {
         stat.executeBatch();
         conn.commit();
