@@ -27,14 +27,14 @@ public class LifeTimeCachePolicy extends Policy {
 
         Data data = se.getData(job.getData().getId(), time);
         if (data != null) {
-            System.out.println("----------- REUSE");
+            // Data Reuse
             data.increaseCount();
             data.setLastUsage(time);
             totalRunTime = job.getRunTime() + DataTransfer.intranet(dataSize);
         } else {
             data = se.getCachedData(job.getData().getId(), time);
             if (data != null) {
-                System.out.println("----------------------- CACHE");
+                // Data Caching
                 data.increaseCount();
                 data.setLastUsage(time);
                 data.setLifetime(time + SE.LIFETIME);
