@@ -31,7 +31,8 @@ public class ElasticQuotaPolicy extends Policy {
         int userId = jobData.getUserId();
 
         Data data = localSE.getData(jobData.getId(), time);
-        if (data != null) { // Data Reuse in local SE
+        if (data != null) {
+            // Data Reuse in local SE
             data.increaseCount();
             data.setLastUsage(time);
             return job.getRunTime() + DataTransfer.intranet(dataSize);
@@ -53,6 +54,10 @@ public class ElasticQuotaPolicy extends Policy {
                 // Store in local SE
                 storeData(jobData, time, localSE);
                 return job.getRunTime() + DataTransfer.extranet(dataSize) + DataTransfer.intranet(dataSize);
+            } else if (localSE.getAvailableSpace() >= dataSize) {
+                // Elastic Quota
+                storeElasticData(data, time);
+                return job.getRunTime() + DataTransfer.extranet(dataSize) + DataTransfer.intranet(dataSize);
             } else {
                 for (SE se : seList) {
                     se.cacheData(time, true);
@@ -66,6 +71,13 @@ public class ElasticQuotaPolicy extends Policy {
                 return job.getRunTime() + DataTransfer.extranet(dataSize);
             }
         }
+    }
+
+    private void storeElasticData(Data data, int time) {
+        data.setCreationDate(time);
+        data.setLastUsage(time);
+        data.setLifetime(time + SE.LIFETIME);
+        localSE.storeElastic(data);
     }
 
     private void storeData(Data data, int time, SE se) {
