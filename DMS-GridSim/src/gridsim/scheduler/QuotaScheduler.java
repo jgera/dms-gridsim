@@ -20,7 +20,7 @@ import java.util.Vector;
 public class QuotaScheduler implements Scheduler {
 
     public static final int NUMBER_OF_USERS = 24;
-    public static final int QUOTA_PER_USER = 20480; // in MB
+    public static int QUOTA_PER_USER; //20480; // in MB
     private int policyCode;
     private Workload workload;
     private Output out;
@@ -36,23 +36,19 @@ public class QuotaScheduler implements Scheduler {
         this.cluster = cluster;
         this.seListSize = seListSize;
         this.seCapacity = seCapacity;
+        QUOTA_PER_USER = (seListSize * seCapacity) / NUMBER_OF_USERS;
     }
 
     @Override
     public void run() throws Exception {
 
-        // Configuring Total Quota
-        int[] usersQuota = new int[NUMBER_OF_USERS];
-        for (int i = 0; i < NUMBER_OF_USERS; i++) {
-            usersQuota[i] = QUOTA_PER_USER;
-        }
-
         // Configuring the SEs
         List<SE> seList = new Vector<SE>(seListSize - 1);
+        int quotaPerUser = QUOTA_PER_USER / seListSize;
         for (int i = 0; i < seListSize - 1; i++) {
-            seList.add(new SE(seCapacity, QUOTA_PER_USER / seListSize));
+            seList.add(new SE(seCapacity, quotaPerUser));
         }
-        SE localSE = new SE(seCapacity, QUOTA_PER_USER / seListSize);
+        SE localSE = new SE(seCapacity, quotaPerUser);
 
         List<Node> freeNodes = cluster.getNodes();
         List<Node> busyNodes = new Vector<Node>(cluster.getSize());
@@ -61,13 +57,11 @@ public class QuotaScheduler implements Scheduler {
         int time = 0;
 
         while (job != null) {
-
             boolean scheduled = false;
-            
+
             if (job.getSubmitTime() > time) {
                 time = job.getSubmitTime();
             }
-
             for (Node node : freeNodes) {
                 if (node.getStatus().equals(Node.Status.available)) {
                     busyNodes.add(node);
@@ -121,7 +115,6 @@ public class QuotaScheduler implements Scheduler {
                 }
             }
         }
-
         // No more jobs to process
         if (busyNodes.size() > 0) {
             for (Node node : busyNodes) {
