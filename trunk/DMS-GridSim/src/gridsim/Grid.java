@@ -37,7 +37,6 @@ public class Grid {
                     grid.process(input, output, policy, nodes, seSize, seListSize);
                 }
             }
-
 //            grid.test(grid);
 
         } catch (Exception ex) {
