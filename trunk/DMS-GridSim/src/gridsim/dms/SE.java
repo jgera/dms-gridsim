@@ -12,10 +12,11 @@ import java.util.Vector;
  */
 public class SE {
 
-    public static final int LIFETIME = 1000; // in seconds
+    public static final int LIFETIME = 5000; // in seconds
     private int size; // in MB
     private List<Data> datas;
     private List<Data> cache;
+    private List<Data> elastic;
     private int cacheSize;
     private int usedSpace; // in MB
     private int[] usersQuota;
@@ -25,6 +26,7 @@ public class SE {
     }
 
     public SE(int size, int quota) {
+        this.elastic = new Vector<Data>();
         this.usersQuota = new int[QuotaScheduler.NUMBER_OF_USERS];
         for (int i = 0; i < QuotaScheduler.NUMBER_OF_USERS; i++) {
             this.usersQuota[i] = quota;
@@ -147,17 +149,17 @@ public class SE {
             datas.remove(data);
             usedSpace -= data.getSize();
             if (updateQuota) {
-                usersQuota[data.getUserId()] += data.getSize();
+                usersQuota[data.getUserId() - 1] += data.getSize();
             }
             System.out.println("-- DELETED ID:" + data.getId() + " - SIZE: " + data.getSize() + " - DATE: " + data.getCreationDate() + " - USAGE: " + data.getLastUsage() + " - COUNT: " + data.getCount());
         }
     }
 
     public int getQuota(int userId) {
-        return usersQuota[userId];
+        return usersQuota[userId - 1];
     }
 
     public void decreaseQuota(int userId, int dataSize) {
-        usersQuota[userId] -= dataSize;
+        usersQuota[userId - 1] -= dataSize;
     }
 }

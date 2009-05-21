@@ -38,7 +38,7 @@ public class Grid {
                 }
             }
 
-//            grid.test(grid);
+            grid.test(grid);
 
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -76,22 +76,27 @@ public class Grid {
         scheduler.run();
     }
 
-    private void generateWorkload(String workload, int numOfJobs, double reuse) throws Exception {
-        wl = new Workload(workload);
+    private void generateWorkload(String workloadName, int numOfJobs, double reuse) throws Exception {
+        wl = new Workload(workloadName);
         wl.generate(numOfJobs, reuse);
     }
 
     private void test(Grid grid) throws Exception {
-        int SE_SIZE = 2000; // 30%
+        int SE_SIZE = 163840; // in MB
 
-        grid.generateWorkload("/t.db3", 100, 50);
-        grid.process("/t.db3", "/tR1.db3", PolicyType.LIFETIME_CACHE_POLICY, 20, SE_SIZE);
-        grid.process("/t.db3", "/tR2.db3", PolicyType.LIFETIME_CACHE_COUNT_POLICY, 20, SE_SIZE);
-        grid.process("/t.db3", "/tR3.db3", PolicyType.LIFETIME_INCREASE_CACHE_POLICY, 20, SE_SIZE);
+//        grid.generateWorkload("/t.db3", 500, 50);
+//        grid.process("/t.db3", "/tR1.db3", PolicyType.LIFETIME_CACHE_POLICY, 20, SE_SIZE);
+//        grid.process("/t.db3", "/tR2.db3", PolicyType.LIFETIME_CACHE_COUNT_POLICY, 20, SE_SIZE);
+//        grid.process("/t.db3", "/tR3.db3", PolicyType.LIFETIME_INCREASE_CACHE_POLICY, 20, SE_SIZE);
 
         //DELETE POLICIES
-        grid.process("/test.db3", "/testResult_5.db3", PolicyType.LIFETIME_POLICY, 20, SE_SIZE);
-        grid.process("/test.db3", "/testResult_6.db3", PolicyType.LIFETIME_INCREASE_POLICY, 20, SE_SIZE);
-        grid.process("/test.db3", "/testResult_7.db3", PolicyType.LIFETIME_CACHE_POLICY, 20, SE_SIZE);
+//        grid.process("/test.db3", "/testResult_5.db3", PolicyType.LIFETIME_POLICY, 20, SE_SIZE);
+//        grid.process("/test.db3", "/testResult_6.db3", PolicyType.LIFETIME_INCREASE_POLICY, 20, SE_SIZE);
+//        grid.process("/test.db3", "/testResult_7.db3", PolicyType.LIFETIME_CACHE_POLICY, 20, SE_SIZE);
+
+        //QUOTA POLICIES
+//        grid.process("/t.db3", "/tr1.db3", PolicyType.STATIC_QUOTA_POLICY, 20, 25600, 3);
+//        grid.process("/t.db3", "/tr2.db3", PolicyType.STATIC_QUOTA_POLICY, 20, 0, 1);
+        grid.process("/t.db3", "/tr3.db3", PolicyType.ELASTIC_QUOTA_POLICY, 20, 25600, 3);
     }
 }

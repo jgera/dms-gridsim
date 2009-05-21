@@ -1,5 +1,6 @@
 package gridsim;
 
+import gridsim.scheduler.QuotaScheduler;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -48,7 +49,7 @@ public class Workload {
                 ResultSet.CLOSE_CURSORS_AT_COMMIT);
         conn.setAutoCommit(true);
 
-        rs = stat.executeQuery("SELECT JobID, SubmitTime, RunTime, DataId, DataSize, OwnerId FROM Jobs ORDER BY SubmitTime;");
+        rs = stat.executeQuery("SELECT JobID, SubmitTime, RunTime, DataId, DataSize, UserId FROM Jobs ORDER BY SubmitTime;");
     }
 
     public Job getJob() throws Exception {
@@ -57,7 +58,7 @@ public class Workload {
         }
         return new Job(rs.getInt("JobID"), rs.getInt("SubmitTime"),
                 rs.getInt("RunTime"), rs.getInt("DataId"),
-                rs.getInt("DataSize"), this.compareCode, rs.getInt("OwnerId"));
+                rs.getInt("DataSize"), this.compareCode, rs.getInt("UserId"));
     }
 
     public void generate(int numOfJobs, double reuse) throws Exception {
@@ -87,12 +88,14 @@ public class Workload {
             try {
                 random = new Random(System.nanoTime());
                 int runTime = MIN_RUNTIME + random.nextInt(MAX_RUNTIME - MIN_RUNTIME);
+                int userId = 1 + random.nextInt(QuotaScheduler.NUMBER_OF_USERS);
 
                 stat.setInt(1, id++);
                 stat.setInt(2, submitTime);
                 stat.setInt(3, runTime);
                 stat.setInt(4, dataId);
                 stat.setInt(5, datas[dataId - 1]);
+                stat.setInt(6, userId);
                 stat.addBatch();
 
                 if (count++ == 1024) {
@@ -116,6 +119,7 @@ public class Workload {
             int randomSubmitTime = random.nextInt(submitTime);
             int runTime = MIN_RUNTIME + random.nextInt(MAX_RUNTIME - MIN_RUNTIME);
             int tasks = MIN_TASKS + random.nextInt(MAX_TASKS - MIN_TASKS);
+            int userId = 1 + random.nextInt(QuotaScheduler.NUMBER_OF_USERS);
 
             for (int j = 0; j < tasks && i < reuseLimit; j++, i++) {
                 stat.setInt(1, id++);
@@ -123,6 +127,7 @@ public class Workload {
                 stat.setInt(3, runTime);
                 stat.setInt(4, dataId);
                 stat.setInt(5, datas[dataId - 1]);
+                stat.setInt(6, userId);
                 stat.addBatch();
 
                 if (count++ == 1024) {
@@ -156,12 +161,12 @@ public class Workload {
         } catch (Exception e) {
         }
         try {
-            stat.execute("CREATE TABLE Jobs (JobID INTEGER, SubmitTime INTEGER, RunTime INTEGER, DataID INTEGER, DataSize INTEGER);");
+            stat.execute("CREATE TABLE Jobs (JobID INTEGER, SubmitTime INTEGER, RunTime INTEGER, DataID INTEGER, DataSize INTEGER, UserId INTEGER);");
             conn.commit();
         } catch (Exception e) {
         }
 
-        this.stat = conn.prepareStatement("INSERT INTO Jobs VALUES(?, ?, ?, ?, ?)");
+        this.stat = conn.prepareStatement("INSERT INTO Jobs VALUES(?, ?, ?, ?, ?, ?)");
     }
 
     private void close() throws SQLException {

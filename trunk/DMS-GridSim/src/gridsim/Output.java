@@ -38,7 +38,7 @@ public class Output {
         } catch (Exception e) {
         }
         try {
-            stat.execute("CREATE TABLE Jobs (JobID INTEGER, SubmitTime INTEGER, WaitTime INTEGER, RunTime INTEGER, TotalRunTime INTEGER, DataID INTEGER, DataSize INTEGER, OwnerId INTEGER);");
+            stat.execute("CREATE TABLE Jobs (JobID INTEGER, SubmitTime INTEGER, WaitTime INTEGER, RunTime INTEGER, TotalRunTime INTEGER, DataID INTEGER, DataSize INTEGER, UserId INTEGER);");
             conn.commit();
         } catch (Exception e) {
         }
