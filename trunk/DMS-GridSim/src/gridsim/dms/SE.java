@@ -48,16 +48,21 @@ public class SE {
         return size - usedSpace;
     }
 
+    public int getAvailableElasticSpace() {
+        return size - (usedSpace + elasticSpace);
+    }
+
     public List<Data> getDatas() {
         return datas;
     }
 
     public void store(Data data) {
-        int availableSpace = size - (usedSpace + cacheSize);
+        int availableSpace = size - (usedSpace + cacheSize + elasticSpace);
         if (availableSpace < data.getSize()) {
             int missingSpace = data.getSize() - availableSpace;
             int spaceToDelete = 0;
             List<Data> toDelete = new Vector<Data>();
+            // Delete from Cache
             Collections.sort(cache);
             for (Data d : cache) {
                 spaceToDelete += d.getSize();
@@ -69,13 +74,27 @@ public class SE {
                 cache.remove(data);
                 cacheSize -= d.getSize();
             }
+            // Delete from Elastic Quota
+            if (spaceToDelete < missingSpace) {
+                Collections.sort(elastic);
+                for (Data d : elastic) {
+                    spaceToDelete += d.getSize();
+                    if (spaceToDelete >= missingSpace) {
+                        break;
+                    }
+                }
+                for (Data d : toDelete) {
+                    elastic.remove(data);
+                    elasticSpace -= d.getSize();
+                }
+            }
         }
         datas.add(data);
         usedSpace += data.getSize();
     }
 
     public void storeElastic(Data data) {
-        int availableSpace = size - (usedSpace + cacheSize);
+        int availableSpace = size - (usedSpace + cacheSize + elasticSpace);
         if (availableSpace < data.getSize()) {
             int missingSpace = data.getSize() - availableSpace;
             int spaceToDelete = 0;
@@ -94,31 +113,6 @@ public class SE {
         }
         elastic.add(data);
         elasticSpace += data.getSize();
-        usedSpace += data.getSize();
-    }
-
-    public void cleanElasticData(int size) {
-        List<Data> toDelete = new Vector<Data>();
-        int cleanSize = 0;
-        Collections.sort(elastic);
-
-        for (Data data : elastic) {
-            if (cleanSize < size) {
-                toDelete.add(data);
-                cleanSize += data.getSize();
-            }
-        }
-        this.deleteElasticData(toDelete);
-    }
-
-    public void cleanExpiredElasticData(int time) {
-        List<Data> toDelete = new Vector<Data>();
-        for (Data data : elastic) {
-            if (data.getLifetime() < time) {
-                toDelete.add(data);
-            }
-        }
-        this.deleteElasticData(toDelete);
     }
 
     public void cleanExpiredData(int time) {
@@ -141,6 +135,18 @@ public class SE {
         }
         cache.addAll(toCache);
         this.deleteData(toCache, updateQuota);
+    }
+
+    public void cacheElasticData(int time) {
+        List<Data> toCache = new Vector<Data>();
+        for (Data data : elastic) {
+            if (data.getLifetime() < time) {
+                toCache.add(data);
+                elasticSpace += data.getSize();
+            }
+        }
+        cache.addAll(toCache);
+        this.deleteElasticData(toCache);
     }
 
     public boolean uncacheData(Data data, boolean updateQuota) {
@@ -236,7 +242,7 @@ public class SE {
     private void deleteElasticData(List<Data> toDelete) {
         for (Data data : toDelete) {
             elastic.remove(data);
-            usedSpace -= data.getSize();
+            elasticSpace -= data.getSize();
             System.out.println("-- DELETED ID:" + data.getId() + " - SIZE: " + data.getSize() + " - DATE: " + data.getCreationDate() + " - USAGE: " + data.getLastUsage() + " - COUNT: " + data.getCount());
         }
     }
