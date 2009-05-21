@@ -12,7 +12,7 @@ import java.util.Vector;
  */
 public class SE {
 
-    public static final int LIFETIME = 5000; // in seconds
+    public static final int LIFETIME = 2000000; // in seconds
     private int size; // in MB
     private List<Data> datas;
     private List<Data> cache;
