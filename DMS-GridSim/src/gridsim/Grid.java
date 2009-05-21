@@ -18,11 +18,11 @@ public class Grid {
         try {
             Grid grid = new Grid();
             if (args.length == 0) {
-//                grid.generateWorkload("workload/input/2input-100000-10.db3", 100000, 10);
-//                grid.generateWorkload("workload/input/2input-100000-25.db3", 100000, 25);
-//                grid.generateWorkload("workload/input/2input-100000-50.db3", 100000, 50);
-//                grid.generateWorkload("workload/input/2input-100000-75.db3", 100000, 75);
-//                grid.generateWorkload("workload/input/2input-100000-90.db3", 100000, 90);
+                grid.generateWorkload("workload/input/input-100000-10.db3", 100000, 10);
+                grid.generateWorkload("workload/input/input-100000-25.db3", 100000, 25);
+                grid.generateWorkload("workload/input/input-100000-50.db3", 100000, 50);
+                grid.generateWorkload("workload/input/input-100000-75.db3", 100000, 75);
+                grid.generateWorkload("workload/input/input-100000-90.db3", 100000, 90);
             } else {
                 String input = args[0];
                 String output = args[1];
@@ -38,7 +38,7 @@ public class Grid {
                 }
             }
 
-            grid.test(grid);
+//            grid.test(grid);
 
         } catch (Exception ex) {
             ex.printStackTrace();
