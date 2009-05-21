@@ -40,20 +40,18 @@ public class StaticQuotaPolicy extends Policy {
 
         // Data Caching Reuse
         data = localSE.getCachedData(jobData.getId(), time);
-        if (data != null) {
-
+        if (data != null && localSE.uncacheData(data, true)) {
             data.increaseCount();
             data.setLastUsage(time);
             data.setLifetime(time + SE.LIFETIME);
-            localSE.uncacheData(data, true);
             return job.getRunTime() + DataTransfer.intranet(dataSize);
         }
 
         localSE.cacheData(time, true);
         for (SE se : seList) {
             if (se.getData(jobData.getId(), time) != null) {
+                // Copy from another SE
                 if (localSE.getQuota(userId) >= dataSize) {
-                    // Copy from another SE
                     storeData(jobData, time, localSE);
                     return job.getRunTime() + DataTransfer.extranet(dataSize) + DataTransfer.intranet(dataSize);
                 }
@@ -61,23 +59,30 @@ public class StaticQuotaPolicy extends Policy {
                 return job.getRunTime() + DataTransfer.extranet(dataSize);
             }
         }
-        
+
+        // Store in local SE
         if (localSE.getQuota(userId) >= dataSize) {
-            // Store in local SE
             storeData(jobData, time, localSE);
             return job.getRunTime() + DataTransfer.extranet(dataSize) + DataTransfer.intranet(dataSize);
-        } else {
-            for (SE se : seList) {
-                se.cacheData(time, true);
-                if (se.getQuota(userId) >= dataSize) {
-                    // Store in a remote SE
-                    storeData(jobData, time, localSE);
-                    //TODO: Check connection between SEs
-                    return job.getRunTime() + 2 * DataTransfer.extranet(dataSize);
-                }
-            }
-            return job.getRunTime() + DataTransfer.extranet(dataSize);
         }
+
+        // Store in a remote SE
+        for (SE se : seList) {
+            se.cacheData(time, true);
+            data = se.getCachedData(jobData.getId(), time);
+            if (data != null && se.uncacheData(data, true)) {
+                data.increaseCount();
+                data.setLastUsage(time);
+                data.setLifetime(time + SE.LIFETIME);
+                return job.getRunTime() + DataTransfer.extranet(dataSize);
+            }
+            if (se.getQuota(userId) >= dataSize) {
+                storeData(jobData, time, localSE);
+                //TODO: Check connection between SEs
+                return job.getRunTime() + 2 * DataTransfer.extranet(dataSize);
+            }
+        }
+        return job.getRunTime() + DataTransfer.extranet(dataSize);
     }
 
     private void storeData(Data data, int time, SE se) {
