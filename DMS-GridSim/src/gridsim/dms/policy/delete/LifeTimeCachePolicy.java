@@ -38,7 +38,7 @@ public class LifeTimeCachePolicy extends Policy {
                 data.increaseCount();
                 data.setLastUsage(time);
                 data.setLifetime(time + SE.LIFETIME);
-                se.uncacheData(data);
+                se.uncacheData(data, false);
                 totalRunTime = job.getRunTime() + DataTransfer.intranet(dataSize);
             } else {
                 se.cacheData(time, false);

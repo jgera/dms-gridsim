@@ -17,29 +17,31 @@ public class SE {
     private List<Data> datas;
     private List<Data> cache;
     private List<Data> elastic;
-    private int cacheSize;
+    private int cacheSize; // in MB
+    private int elasticSpace; // in MB
     private int usedSpace; // in MB
     private int[] usersQuota;
-    
+
     public SE(int size) {
         this.init(size);
     }
 
     public SE(int size, int quota) {
-        this.elastic = new Vector<Data>();
         this.usersQuota = new int[QuotaScheduler.NUMBER_OF_USERS];
         for (int i = 0; i < QuotaScheduler.NUMBER_OF_USERS; i++) {
             this.usersQuota[i] = quota;
         }
         this.init(size);
     }
-    
+
     private void init(int size) {
         this.size = size;
         this.usedSpace = 0;
         this.datas = new Vector<Data>();
         this.cache = new Vector<Data>();
         this.cacheSize = 0;
+        this.elastic = new Vector<Data>();
+        this.elasticSpace = 0;
     }
 
     public int getAvailableSpace() {
@@ -72,6 +74,53 @@ public class SE {
         usedSpace += data.getSize();
     }
 
+    public void storeElastic(Data data) {
+        int availableSpace = size - (usedSpace + cacheSize);
+        if (availableSpace < data.getSize()) {
+            int missingSpace = data.getSize() - availableSpace;
+            int spaceToDelete = 0;
+            List<Data> toDelete = new Vector<Data>();
+            Collections.sort(cache);
+            for (Data d : cache) {
+                spaceToDelete += d.getSize();
+                if (spaceToDelete >= missingSpace) {
+                    break;
+                }
+            }
+            for (Data d : toDelete) {
+                cache.remove(data);
+                cacheSize -= d.getSize();
+            }
+        }
+        elastic.add(data);
+        elasticSpace += data.getSize();
+        usedSpace += data.getSize();
+    }
+
+    public void cleanElasticData(int size) {
+        List<Data> toDelete = new Vector<Data>();
+        int cleanSize = 0;
+        Collections.sort(elastic);
+
+        for (Data data : elastic) {
+            if (cleanSize < size) {
+                toDelete.add(data);
+                cleanSize += data.getSize();
+            }
+        }
+        this.deleteElasticData(toDelete);
+    }
+
+    public void cleanExpiredElasticData(int time) {
+        List<Data> toDelete = new Vector<Data>();
+        for (Data data : elastic) {
+            if (data.getLifetime() < time) {
+                toDelete.add(data);
+            }
+        }
+        this.deleteElasticData(toDelete);
+    }
+
     public void cleanExpiredData(int time) {
         List<Data> toDelete = new Vector<Data>();
         for (Data data : datas) {
@@ -94,11 +143,19 @@ public class SE {
         this.deleteData(toCache, updateQuota);
     }
 
-    public void uncacheData(Data data) {
+    public boolean uncacheData(Data data, boolean updateQuota) {
+        if (updateQuota) {
+            if (usersQuota[data.getUserId() - 1] > data.getSize()) {
+                usersQuota[data.getUserId() - 1] -= data.getSize();
+            } else {
+                return false;
+            }
+        }
         cache.remove(data);
         datas.add(data);
         cacheSize -= data.getSize();
         usedSpace += data.getSize();
+        return true;
     }
 
     public void deleteData(int requestedSpace) {
@@ -144,6 +201,27 @@ public class SE {
         return null;
     }
 
+    public Data getElasticData(int dataId, int time) {
+        for (Data data : elastic) {
+            if (data.getId() == dataId) {
+                return data;
+            }
+        }
+        return null;
+    }
+
+    public int getQuota(int userId) {
+        return usersQuota[userId - 1];
+    }
+
+    public void decreaseQuota(int userId, int dataSize) {
+        usersQuota[userId - 1] -= dataSize;
+    }
+
+    public int getElasticSpace() {
+        return elasticSpace;
+    }
+
     private void deleteData(List<Data> toDelete, boolean updateQuota) {
         for (Data data : toDelete) {
             datas.remove(data);
@@ -155,11 +233,11 @@ public class SE {
         }
     }
 
-    public int getQuota(int userId) {
-        return usersQuota[userId - 1];
-    }
-
-    public void decreaseQuota(int userId, int dataSize) {
-        usersQuota[userId - 1] -= dataSize;
+    private void deleteElasticData(List<Data> toDelete) {
+        for (Data data : toDelete) {
+            elastic.remove(data);
+            usedSpace -= data.getSize();
+            System.out.println("-- DELETED ID:" + data.getId() + " - SIZE: " + data.getSize() + " - DATE: " + data.getCreationDate() + " - USAGE: " + data.getLastUsage() + " - COUNT: " + data.getCount());
+        }
     }
 }
