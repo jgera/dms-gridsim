@@ -150,18 +150,27 @@ public class SE {
     }
 
     public boolean uncacheData(Data data, boolean updateQuota) {
-        if (updateQuota) {
-            if (usersQuota[data.getUserId() - 1] > data.getSize()) {
-                usersQuota[data.getUserId() - 1] -= data.getSize();
-            } else {
-                return false;
-            }
+        if (updateQuota && usersQuota[data.getUserId() - 1] >= data.getSize()) {
+            usersQuota[data.getUserId() - 1] -= data.getSize();
+        } else {
+            return false;
         }
         cache.remove(data);
         datas.add(data);
         cacheSize -= data.getSize();
         usedSpace += data.getSize();
         return true;
+    }
+
+    public boolean uncacheElasticData(Data data, boolean updateQuota) {
+        if (!this.uncacheData(data, updateQuota) && this.getAvailableElasticSpace() >= data.getSize()) {
+            cache.remove(data);
+            cacheSize -= data.getSize();
+            elastic.add(data);
+            elasticSpace += data.getSize();
+            return true;
+        }
+        return false;
     }
 
     public void deleteData(int requestedSpace) {
