@@ -48,7 +48,7 @@ public class ElasticQuotaPolicy extends Policy {
 
         // Data Caching Reuse
         data = localSE.getCachedData(jobData.getId(), time);
-        if (data != null && localSE.uncacheData(data, true)) {
+        if (data != null && localSE.uncacheElasticData(data, true)) {
             data.increaseCount();
             data.setLastUsage(time);
             data.setLifetime(time + SE.LIFETIME);
@@ -61,6 +61,10 @@ public class ElasticQuotaPolicy extends Policy {
                 // Copy from another SE
                 if (localSE.getQuota(userId) >= dataSize) {
                     storeData(jobData, time, localSE);
+                    return job.getRunTime() + DataTransfer.extranet(dataSize) + DataTransfer.intranet(dataSize);
+                }
+                if (localSE.getAvailableElasticSpace() >= dataSize) {
+                    storeElasticData(jobData, time);
                     return job.getRunTime() + DataTransfer.extranet(dataSize) + DataTransfer.intranet(dataSize);
                 }
                 // Download from a remote SE to worker
