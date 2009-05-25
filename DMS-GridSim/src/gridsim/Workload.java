@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Random;
+import java.util.TreeSet;
 
 /**
  *
@@ -17,9 +18,9 @@ import java.util.Random;
 public class Workload {
 
     private final int MIN_TASKS = 1;
-    private final int MAX_TASKS = 10;
+    private final int MAX_TASKS = 5;
     private final int MIN_DATA_SIZE = 10; // in MB
-    private final int MAX_DATA_SIZE = 1024; // in MB
+    private final int MAX_DATA_SIZE = 512; // in MB
     private final int MIN_RUNTIME = 300; // in seconds
     private final int MAX_RUNTIME = 3000; // in seconds
     private final int SUBMISSION_DELAY = 200; // in seconds
@@ -86,26 +87,17 @@ public class Workload {
         for (int i = 0; i < threshold; i++) {
             try {
                 random = new Random(System.nanoTime());
-                int runTime = MIN_RUNTIME + random.nextInt(MAX_RUNTIME - MIN_RUNTIME);
                 int userId = 1 + random.nextInt(QuotaScheduler.NUMBER_OF_USERS);
-
-                stat.setInt(1, id++);
-                stat.setInt(2, submitTime);
-                stat.setInt(3, runTime);
-                stat.setInt(4, dataId);
-                stat.setInt(5, datas[dataId - 1]);
-                stat.setInt(6, userId);
-                stat.addBatch();
+                this.addStat(id++, submitTime, dataId, datas[dataId - 1], userId);
 
                 if (count++ == 1024) {
                     stat.executeBatch();
                     conn.commit();
                     count = 0;
                 }
-
                 submitTime += SUBMISSION_DELAY;
                 dataId++;
-                
+
             } catch (SQLException sqlException) {
                 sqlException.printStackTrace();
             }
@@ -116,19 +108,11 @@ public class Workload {
             dataId = 1 + random.nextInt(threshold);
 
             int randomSubmitTime = random.nextInt(submitTime);
-            int runTime = MIN_RUNTIME + random.nextInt(MAX_RUNTIME - MIN_RUNTIME);
             int tasks = MIN_TASKS + random.nextInt(MAX_TASKS - MIN_TASKS);
             int userId = 1 + random.nextInt(QuotaScheduler.NUMBER_OF_USERS);
 
             for (int j = 0; j < tasks && i < reuseLimit; j++, i++) {
-                stat.setInt(1, id++);
-                stat.setInt(2, randomSubmitTime);
-                stat.setInt(3, runTime);
-                stat.setInt(4, dataId);
-                stat.setInt(5, datas[dataId - 1]);
-                stat.setInt(6, userId);
-                stat.addBatch();
-
+                this.addStat(id++, randomSubmitTime, dataId, datas[dataId - 1], userId);
                 if (count++ == 1024) {
                     stat.executeBatch();
                     conn.commit();
@@ -137,6 +121,119 @@ public class Workload {
             }
         }
         this.close();
+    }
+
+    public void generate(int SEsize, int type) throws Exception {
+
+        this.createDatabase();
+
+        int[] quotas = new int[QuotaScheduler.NUMBER_OF_USERS];
+        int quota = SEsize / QuotaScheduler.NUMBER_OF_USERS;
+        int newQuota = quota + (quota * 70) / 100;
+        int diffQuota = quota - (quota * 30) / 100;
+
+        int id = 1;
+        int count = 0;
+        int dataId = 1;
+
+        try {
+            while (true) {
+
+                random = new Random(System.nanoTime());
+                int userId = 1 + random.nextInt(QuotaScheduler.NUMBER_OF_USERS);
+                int tasks = MIN_TASKS + random.nextInt(MAX_TASKS - MIN_TASKS);
+                int submitTime = 0 + random.nextInt(90000);
+                int dataSize = MIN_DATA_SIZE + random.nextInt(MAX_DATA_SIZE - MIN_DATA_SIZE);
+
+                taskfor:
+                for (int i = 0; i < tasks; i++) {
+                    int userQuota = quotas[userId - 1];
+
+                    switch (type) {
+                        case 1:
+                            if (userQuota < quota && quota - userQuota >= dataSize) {
+                                this.addStat(id++, submitTime, dataId, dataSize, userId);
+                            } else {
+                                break taskfor;
+                            }
+                            break;
+                        case 2:
+                            if (userQuota < newQuota && newQuota - userQuota >= dataSize) {
+                                this.addStat(id++, submitTime, dataId, dataSize, userId);
+                            } else {
+                                break taskfor;
+                            }
+                            break;
+                        case 3:
+                            if (userId == 1) {
+                                if (userQuota < newQuota && newQuota - userQuota >= dataSize) {
+                                    this.addStat(id++, submitTime, dataId, dataSize, userId);
+                                } else {
+                                    break taskfor;
+                                }
+                            } else if (userQuota < diffQuota && diffQuota - userQuota >= dataSize) {
+                                this.addStat(id++, submitTime, dataId, dataSize, userId);
+                            } else {
+                                break taskfor;
+                            }
+                            break;
+                    }
+                }
+                if (count++ >= 1024) {
+                    stat.executeBatch();
+                    conn.commit();
+                    count = 0;
+                }
+                quotas[userId - 1] += dataSize;
+                dataId++;
+
+                boolean finished = true;
+                finishFor:
+                for (int i = 0; i < QuotaScheduler.NUMBER_OF_USERS; i++) {
+                    switch (type) {
+                        case 1:
+                            if (quotas[i] < quota - MIN_DATA_SIZE) {
+                                finished = false;
+                                break finishFor;
+                            }
+                            break;
+                        case 2:
+                            if (quotas[i] < newQuota - MIN_DATA_SIZE) {
+                                finished = false;
+                                break finishFor;
+                            }
+                            break;
+                        case 3:
+                            if (i == 0 && quotas[0] < newQuota - MAX_DATA_SIZE) {
+                                finished = false;
+                                break finishFor;
+                            } else if (quotas[i] < diffQuota - MAX_DATA_SIZE) {
+                                finished = false;
+                                break finishFor;
+                            }
+                            break;
+                    }
+                }
+
+                if (finished) {
+                    break;
+                }
+            }
+        } catch (SQLException sqlException) {
+            sqlException.printStackTrace();
+        }
+        this.close();
+    }
+
+    private void addStat(int id, int submitTime, int dataId, int dataSize, int userId) throws SQLException {
+        int runTime = MIN_RUNTIME + random.nextInt(MAX_RUNTIME - MIN_RUNTIME);
+        stat.setInt(1, id);
+        stat.setInt(2, submitTime);
+        stat.setInt(3, runTime);
+        stat.setInt(4, dataId);
+        stat.setInt(5, dataSize);
+        stat.setInt(6, userId);
+        stat.addBatch();
     }
 
     private void createDatabase() throws SQLException {

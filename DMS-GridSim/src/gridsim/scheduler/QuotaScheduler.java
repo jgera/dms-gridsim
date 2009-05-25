@@ -19,8 +19,8 @@ import java.util.Vector;
  */
 public class QuotaScheduler implements Scheduler {
 
-    public static final int NUMBER_OF_USERS = 24;
-    public static int QUOTA_PER_USER; //20480; // in MB
+    public static final int NUMBER_OF_USERS = 10;
+    public static int QUOTA_PER_USER; // in MB
     private int policyCode;
     private Workload workload;
     private Output out;
