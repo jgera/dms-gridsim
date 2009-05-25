@@ -18,6 +18,9 @@ public class Grid {
         try {
             Grid grid = new Grid();
             if (args.length == 0) {
+//                grid.generateWorkload("workload/input/input-quota-1.db3", 163840, 1);
+                grid.generateWorkload("workload/input/input-quota-2.db3", 163840, 2);
+//                grid.generateWorkload("workload/input/input-quota-3.db3", 163840, 3);
 //                grid.generateWorkload("workload/input/input-100000-10.db3", 100000, 10);
 //                grid.generateWorkload("workload/input/input-100000-25.db3", 100000, 25);
 //                grid.generateWorkload("workload/input/input-100000-50.db3", 100000, 50);
@@ -37,7 +40,7 @@ public class Grid {
                     grid.process(input, output, policy, nodes, seSize, seListSize);
                 }
             }
-            grid.test(grid);
+//            grid.test(grid);
 
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -80,6 +83,11 @@ public class Grid {
         wl.generate(numOfJobs, reuse);
     }
 
+    private void generateWorkload(String workloadName, int SEsize, int type) throws Exception {
+        wl = new Workload(workloadName);
+        wl.generate(SEsize, type);
+    }
+
     private void test(Grid grid) throws Exception {
         int SE_SIZE = 163840; // in MB
 
@@ -94,8 +102,15 @@ public class Grid {
 //        grid.process("/test.db3", "/testResult_7.db3", PolicyType.LIFETIME_CACHE_POLICY, 20, SE_SIZE);
 
         //QUOTA POLICIES
-        grid.process("workload/input/input-100000-10.db3", "C:/Documents and Settings/User/Desktop/result/output-100000-10-STATIC.db3", PolicyType.STATIC_QUOTA_POLICY, 20, SE_SIZE, 1);
+//        grid.process("workload/input/input-100000-10.db3", "C:/Documents and Settings/User/Desktop/result/output-100000-10-STATIC.db3", PolicyType.STATIC_QUOTA_POLICY, 20, SE_SIZE, 1);
 //        grid.process("/t.db3", "/tr2.db3", PolicyType.STATIC_QUOTA_POLICY, 20, 0, 1);
 //        grid.process("/t.db3", "/tr3.db3", PolicyType.ELASTIC_QUOTA_POLICY, 20, SE_SIZE, 1);
+//        grid.process("workload/input/input-quota-1.db3", "workload/output/output-quota-1_STATIC.db3", PolicyType.STATIC_QUOTA_POLICY, 20, SE_SIZE, 1);
+//        grid.process("workload/input/input-quota-1.db3", "workload/output/output-quota-1_ELASTIC.db3", PolicyType.ELASTIC_QUOTA_POLICY, 20, SE_SIZE, 1);
+//        grid.process("workload/input/input-quota-2.db3", "workload/output/output-quota-2_STATIC.db3", PolicyType.STATIC_QUOTA_POLICY, 20, SE_SIZE, 1);
+//        grid.process("workload/input/input-quota-2.db3", "workload/output/output-quota-2_ELASTIC.db3", PolicyType.ELASTIC_QUOTA_POLICY, 20, SE_SIZE, 1);
+        grid.process("workload/input/input-quota-3.db3", "workload/output/output-quota-3_STATIC.db3", PolicyType.STATIC_QUOTA_POLICY, 20, SE_SIZE, 1);
+        grid.process("workload/input/input-quota-3.db3", "workload/output/output-quota-3_ELASTIC.db3", PolicyType.ELASTIC_QUOTA_POLICY, 20, SE_SIZE, 1);
+
     }
 }
