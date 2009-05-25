@@ -22,6 +22,7 @@ public class Workload {
     private final int MAX_DATA_SIZE = 1024; // in MB
     private final int MIN_RUNTIME = 300; // in seconds
     private final int MAX_RUNTIME = 3000; // in seconds
+    private final int SUBMISSION_DELAY = 200; // in seconds
     private File file;
     private Connection conn;
     private PreparedStatement stat;
@@ -64,8 +65,6 @@ public class Workload {
     public void generate(int numOfJobs, double reuse) throws Exception {
 
         this.createDatabase();
-
-        int submissionDelay = 60; // in seconds
         int submitTime = 0; // in seconds
 
         int threshold = numOfJobs - (int) (numOfJobs * (reuse / 100));
@@ -104,7 +103,7 @@ public class Workload {
                     count = 0;
                 }
 
-                submitTime += submissionDelay;
+                submitTime += SUBMISSION_DELAY;
                 dataId++;
                 
             } catch (SQLException sqlException) {

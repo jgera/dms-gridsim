@@ -76,6 +76,7 @@ public class SE {
             }
             // Delete from Elastic Quota
             if (spaceToDelete < missingSpace) {
+                toDelete = new Vector<Data>();
                 Collections.sort(elastic);
                 for (Data d : elastic) {
                     spaceToDelete += d.getSize();
@@ -150,24 +151,30 @@ public class SE {
     }
 
     public boolean uncacheData(Data data, boolean updateQuota) {
-        if (updateQuota && usersQuota[data.getUserId() - 1] >= data.getSize()) {
-            usersQuota[data.getUserId() - 1] -= data.getSize();
-        } else {
-            return false;
+        if (updateQuota) {
+            if (usersQuota[data.getUserId() - 1] >= data.getSize()) {
+                usersQuota[data.getUserId() - 1] -= data.getSize();
+            } else {
+                return false;
+            }
         }
         cache.remove(data);
-        datas.add(data);
         cacheSize -= data.getSize();
+        datas.add(data);
         usedSpace += data.getSize();
         return true;
     }
 
     public boolean uncacheElasticData(Data data, boolean updateQuota) {
-        if (!this.uncacheData(data, updateQuota) && this.getAvailableElasticSpace() >= data.getSize()) {
-            cache.remove(data);
-            cacheSize -= data.getSize();
-            elastic.add(data);
-            elasticSpace += data.getSize();
+        if (!this.uncacheData(data, updateQuota)) {
+            if (this.getAvailableElasticSpace() >= data.getSize()) {
+                cache.remove(data);
+                cacheSize -= data.getSize();
+                elastic.add(data);
+                elasticSpace += data.getSize();
+                return true;
+            }
+        } else {
             return true;
         }
         return false;

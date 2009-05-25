@@ -18,11 +18,11 @@ public class Grid {
         try {
             Grid grid = new Grid();
             if (args.length == 0) {
-                grid.generateWorkload("workload/input/input-100000-10.db3", 100000, 10);
-                grid.generateWorkload("workload/input/input-100000-25.db3", 100000, 25);
-                grid.generateWorkload("workload/input/input-100000-50.db3", 100000, 50);
-                grid.generateWorkload("workload/input/input-100000-75.db3", 100000, 75);
-                grid.generateWorkload("workload/input/input-100000-90.db3", 100000, 90);
+//                grid.generateWorkload("workload/input/input-100000-10.db3", 100000, 10);
+//                grid.generateWorkload("workload/input/input-100000-25.db3", 100000, 25);
+//                grid.generateWorkload("workload/input/input-100000-50.db3", 100000, 50);
+//                grid.generateWorkload("workload/input/input-100000-75.db3", 100000, 75);
+//                grid.generateWorkload("workload/input/input-100000-90.db3", 100000, 90);
             } else {
                 String input = args[0];
                 String output = args[1];
@@ -37,7 +37,7 @@ public class Grid {
                     grid.process(input, output, policy, nodes, seSize, seListSize);
                 }
             }
-//            grid.test(grid);
+            grid.test(grid);
 
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -83,7 +83,7 @@ public class Grid {
     private void test(Grid grid) throws Exception {
         int SE_SIZE = 163840; // in MB
 
-        grid.generateWorkload("/t.db3", 500, 90);
+//        grid.generateWorkload("/t.db3", 500, 90);
 //        grid.process("/t.db3", "/tR1.db3", PolicyType.LIFETIME_CACHE_POLICY, 20, SE_SIZE);
 //        grid.process("/t.db3", "/tR2.db3", PolicyType.LIFETIME_CACHE_COUNT_POLICY, 20, SE_SIZE);
 //        grid.process("/t.db3", "/tR3.db3", PolicyType.LIFETIME_INCREASE_CACHE_POLICY, 20, SE_SIZE);
@@ -94,8 +94,8 @@ public class Grid {
 //        grid.process("/test.db3", "/testResult_7.db3", PolicyType.LIFETIME_CACHE_POLICY, 20, SE_SIZE);
 
         //QUOTA POLICIES
-        grid.process("/t.db3", "/tr1.db3", PolicyType.STATIC_QUOTA_POLICY, 20, 25600, 3);
-        grid.process("/t.db3", "/tr2.db3", PolicyType.STATIC_QUOTA_POLICY, 20, 0, 1);
-        grid.process("/t.db3", "/tr3.db3", PolicyType.ELASTIC_QUOTA_POLICY, 20, 25600, 3);
+        grid.process("workload/input/input-100000-10.db3", "C:/Documents and Settings/User/Desktop/result/output-100000-10-STATIC.db3", PolicyType.STATIC_QUOTA_POLICY, 20, SE_SIZE, 1);
+//        grid.process("/t.db3", "/tr2.db3", PolicyType.STATIC_QUOTA_POLICY, 20, 0, 1);
+//        grid.process("/t.db3", "/tr3.db3", PolicyType.ELASTIC_QUOTA_POLICY, 20, SE_SIZE, 1);
     }
 }
