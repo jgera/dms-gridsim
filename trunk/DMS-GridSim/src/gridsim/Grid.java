@@ -111,6 +111,5 @@ public class Grid {
 //        grid.process("workload/input/input-quota-2.db3", "workload/output/output-quota-2_ELASTIC.db3", PolicyType.ELASTIC_QUOTA_POLICY, 20, SE_SIZE, 1);
         grid.process("workload/input/input-quota-3.db3", "workload/output/output-quota-3_STATIC.db3", PolicyType.STATIC_QUOTA_POLICY, 20, SE_SIZE, 1);
         grid.process("workload/input/input-quota-3.db3", "workload/output/output-quota-3_ELASTIC.db3", PolicyType.ELASTIC_QUOTA_POLICY, 20, SE_SIZE, 1);
-
     }
 }
