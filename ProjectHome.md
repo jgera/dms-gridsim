@@ -1,0 +1,1 @@
+This is a simulator for a data management service in a Grid environment.
